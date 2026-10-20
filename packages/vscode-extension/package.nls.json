@@ -1,0 +1,10 @@
+{
+  "extension.displayName": "Unify Provider",
+  "extension.description": "Use your ChatGPT (Codex) subscription models inside VS Code's native Chat and Agent via the Language Model Chat Provider API. Browser sign-in, no keys or URLs to paste.",
+  "provider.displayName": "Unify Provider (ChatGPT plan)",
+  "command.connect.title": "Sign in with ChatGPT",
+  "command.disconnect.title": "Disconnect",
+  "command.manage.title": "Manage Unify Provider",
+  "command.showStatus.title": "Show Status",
+  "command.showLogs.title": "Show Logs"
+}

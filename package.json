@@ -1,0 +1,21 @@
+{
+  "name": "unify-provider",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Zero-manual-configuration subscription model connections for native editor agents.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3"
+  }
+}

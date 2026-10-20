@@ -1,0 +1,74 @@
+{
+  "name": "unify-provider-vscode",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "0.1.0",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "publisher": "unify-provider",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lengjing/unify-provider.git",
+    "directory": "packages/vscode-extension"
+  },
+  "private": true,
+  "engines": {
+    "vscode": "^1.104.0",
+    "node": ">=22"
+  },
+  "categories": ["AI", "Chat"],
+  "keywords": ["chatgpt", "codex", "copilot", "language model", "byok"],
+  "main": "./dist/extension.js",
+  "l10n": "./l10n",
+  "extensionKind": ["ui", "workspace"],
+  "contributes": {
+    "languageModelChatProviders": [
+      {
+        "vendor": "unify-provider",
+        "displayName": "%provider.displayName%",
+        "managementCommand": "unifyProvider.manage"
+      }
+    ],
+    "commands": [
+      {
+        "command": "unifyProvider.connect",
+        "title": "%command.connect.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.disconnect",
+        "title": "%command.disconnect.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.manage",
+        "title": "%command.manage.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.showStatus",
+        "title": "%command.showStatus.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.showLogs",
+        "title": "%command.showLogs.title%",
+        "category": "%extension.displayName%"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package --no-dependencies --baseContentUrl https://github.com/lengjing/unify-provider/blob/main/packages/vscode-extension --baseImagesUrl https://github.com/lengjing/unify-provider/raw/main/packages/vscode-extension"
+  },
+  "devDependencies": {
+    "@unify-provider/core": "*",
+    "@types/vscode": "~1.104.0",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.25.0"
+  }
+}

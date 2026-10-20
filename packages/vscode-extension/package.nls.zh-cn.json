@@ -1,0 +1,10 @@
+{
+  "extension.displayName": "Unify Provider",
+  "extension.description": "通过语言模型聊天提供者 API，在 VS Code 原生 Chat 和 Agent 中使用你的 ChatGPT（Codex）订阅模型。浏览器登录，无需粘贴密钥或 URL。",
+  "provider.displayName": "Unify Provider（ChatGPT 订阅）",
+  "command.connect.title": "登录 ChatGPT",
+  "command.disconnect.title": "断开连接",
+  "command.manage.title": "管理 Unify Provider",
+  "command.showStatus.title": "显示状态",
+  "command.showLogs.title": "显示日志"
+}

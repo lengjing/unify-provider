@@ -1,0 +1,11 @@
+{
+  "name": "@unify-provider/local-endpoint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plugin-managed loopback compatibility endpoint for editors whose native agents require an HTTP model API; pending compatibility verification.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@unify-provider/core": "*"
+  }
+}
