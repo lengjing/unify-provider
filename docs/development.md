@@ -56,7 +56,7 @@ npm run package --workspace unify-provider-vscode
 
 This invokes `vsce package --no-dependencies`; the `vscode:prepublish` hook first runs the esbuild build. The package script sets GitHub base URLs for README content and images. `.vscodeignore` excludes dependencies, source, tests, debug configuration, build configuration, and existing VSIX files. The VSIX includes the MIT LICENSE and the English user README; the former extension `README.zh-CN.md` has been removed. The root Chinese README is retained.
 
-`publisher: unify-provider` is a publisher placeholder: account ownership must be verified before publication. Publication is a separate task.
+The extension is published under the Marketplace publisher `gamstek` (`publisher` in `packages/vscode-extension/package.json`); the extension ID is therefore `gamstek.unify-provider-vscode`. The VSIX must be uploaded from an account that owns that publisher.
 
 ### Install a local VSIX
 
