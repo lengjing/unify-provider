@@ -2,7 +2,7 @@
   "name": "unify-provider",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "icon": "media/icon.png",
   "publisher": "gamstek",

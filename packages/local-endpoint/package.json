@@ -1,6 +1,6 @@
 {
   "name": "@unify-provider/local-endpoint",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "license": "MIT",
   "description": "Plugin-managed loopback OpenAI-compatible endpoint for editors whose native agents require an HTTP model API (secondary experience: Trae).",
