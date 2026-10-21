@@ -15,7 +15,7 @@
 | VS Code（GitHub Copilot Chat） | 扩展 API `LanguageModelChatProvider`（另有 Custom Endpoint GUI） | 本机（扩展宿主进程内） | 是：扩展代码注册模型，鉴权在 `provideLanguageModelChatInformation` 中触发；模型选择器仍需用户点选一次 | 模型需声明 `toolCalling`；Copilot 哈尼斯需开实验设置 `chat.agentHost.byokModels.enabled`；补全/语义搜索不走 BYOK | **MVP 零配置**（模型需在选择器里点选一次） | [LM Chat Provider API](https://code.visualstudio.com/api/extension-guides/ai/language-model-chat-provider)、[Language models](https://code.visualstudio.com/docs/agent-customization/language-models)、[1.104 发布说明](https://code.visualstudio.com/updates/v1_104) |
 | Qoder IDE（VS Code 系） | 仅固定预设厂商 API Key | 文档未明示；预设厂商固定 URL，与本方案无关 | 否 | 文档未明示 | **不支持，待厂商开放** | [Qoder IDE Custom Models](https://docs.qoder.com/user-guide/chat/custom-models) |
 | Qoder 新版桌面应用 | 自定义 Base URL 的 GUI（OpenAI Compatible：Chat Completions / Responses；Anthropic Compatible） | 文档未明示，待实测（间接证据指向本机） | 否：Plugins 是 Skills/MCP/Agents 包，不是模型提供者；无文档化模型配置文件 | 文档未明示；需在 GUI 填写上下文窗口/视觉/思考能力 | **后续次级体验**（手填一次） | [Qoder Custom models](https://docs.qoder.com/qoder/custom-models)、[Qoder Plugins](https://docs.qoder.com/qoder/plugins) |
-| Trae（字节跳动） | 自定义 Base URL 的 GUI（OpenAI Chat Completions / Anthropic Messages 格式） | 文档未明示，待实测（间接证据指向本机） | 否：无文档化模型配置文件或插件 API | Auto 模式不调用自定义模型；仅桌面版可添加；仅本地环境可用；CUE 补全固定内置模型 | **后续次级体验**（手填一次） | [TRAE 内置模型 & 自定义模型](https://docs.trae.com.cn/ide/models)、[TraeWork 模型](https://docs.trae.cn/work_models.md)、[Auto 模式](https://docs.trae.cn/ide_auto-mode.md) |
+| Trae（字节跳动） | 自定义 Base URL 的 GUI（OpenAI Chat Completions / Anthropic Messages 格式） | **已抓包（CN 3.4.4）**：TCP 由本机 `ai-agent` 发起，接受 `http://127.0.0.1`；报文由厂商服务端组装后经隧道下发，对话内容经服务端中转 | 否：`vscode.lm` 不被自研 Agent 消费；无命令/IPC/配置文件/deeplink 可注册模型（见 Trae 节 f、g） | Auto 模式不调用自定义模型；仅桌面版可添加；仅本地环境可用；CUE 补全固定内置模型 | **次级体验，已实现**（粘贴一次） | [TRAE 内置模型 & 自定义模型](https://docs.trae.com.cn/ide/models)、[TraeWork 模型](https://docs.trae.cn/work_models.md)、[Auto 模式](https://docs.trae.cn/ide_auto-mode.md) |
 | Cursor | 固定厂商 API Key + "Override OpenAI Base URL"（官方文档已不再描述该选项） | **厂商服务端**（所有 BYOK 请求经 Cursor 服务器构造 prompt，localhost 不可达） | 否：仅 MCP 有扩展 API，模型无 | 仅"标准非推理 OpenAI 聊天模型"；Tab 补全不走 BYOK；需公网 HTTPS | **不支持，待厂商开放** | [Cursor BYOK](https://cursor.com/help/models-and-usage/api-keys)、[Cursor 员工回复（非官方文档）](https://forum.cursor.com/t/run-a-local-llm-model-with-cursor/156489/3) |
 
 ## VS Code（GitHub Copilot Chat）
@@ -126,7 +126,11 @@ VS Code 已内置官方 **Codex 哈尼斯**：安装 OpenAI Codex 扩展，或�
 
 ## Trae（字节跳动）
 
-### 结论：需用户手填一次
+### 结论：次级体验，已实现并验证（Trae CN 3.4.4 / 1.107.1，Windows，2026-10-21）
+
+- 路线：扩展在 Trae 中自动启动 `local-endpoint`（`http://127.0.0.1:46117/v1`），用户在 *设置 → 模型 → 添加自定义模型 → 自定义配置*（OpenAI Chat Completions 格式）粘贴一次 Base URL / 安装级密钥 / 模型 ID。
+- 证据：连通性校验（含 `image_url`）通过；Builder 模式下使用 `gpt-6.1-sol` 完成含 27 个工具定义的 Agent 请求并正常返回（扩展日志：`messages=2 tools=27 stream=true → status=200`）；用户确认可正常使用。请求发起侧与报文形状见 h 节。
+- 边界：`vscode.lm` 零配置路线不可用（f、g 节）；Auto 模式不使用自定义模型；对话内容经 Trae 服务端中转。
 
 说明：国际站 https://docs.trae.ai/ide/models 及其 `.md`、`/llms.txt` 仅返回页面标题（JS 渲染，未能获取正文）；以下依据来自中文站同一文档。
 
@@ -159,11 +163,76 @@ VS Code 已内置官方 **Codex 哈尼斯**：安装 OpenAI Codex 扩展，或�
 
 有自定义 Base URL（Chat Completions / Messages 格式），但没有程序化写入入口，用户必须在设置里手填一次 → 次级体验。另注意：API 密钥为必填字段，本地连接器需提供一次性令牌供用户粘贴。
 
+### f. 本机安装包静态取证（Trae CN 1.107.1，Windows，2026-10-21）
+
+对象：`%LOCALAPPDATA%\Programs\Trae CN`，`product.json` 中 `version: 1.107.1`、`vscodeVersion: 1.107.1`、`buildBranch: release_desktop_yoma_win32_cn`、`date: 2026-10-16`。以下为对已发布构建的字符串/结构分析，不是运行时抓包。
+
+**`vscode.lm` 提供者路线（VS Code 零配置同款）：不可用。**
+
+- 扩展宿主 `out/vs/workbench/api/node/extensionHostProcess.js` 保留了上游 `registerLanguageModelChatProvider` / `ExtHostLanguageModels`；workbench 保留了 `languageModelChatProviders` 贡献点与 `MainThreadLanguageModels`。即 VSIX 可以安装并注册提供者。
+- 但 `workbench.desktop.main.js` 中 `ILanguageModelsService` 的全部 22 处注入点都属于上游 VS Code chat（`chat.ChatSessionStore`、prompt 文件校验、chat 内置工具、模型选择器、账户菜单 "Manage Models" 等）；Trae 自研 Agent 的模块（`ICubeAI` 162 处、`iCubeChat` 55 处）**没有任何一处**引用该服务。
+- Trae 把上游配置 `chat.disableAIFeatures` 的默认值改为 `true`（上游默认 `false`），上游 chat 由 `workbench.contrib.chatTeardown` 整体拆除；`defaultChatAgent` 仍指向 `GitHub.copilot-chat` 且文档 URL 为 `https://example.com` 占位。
+- 结论：装上 unify-provider VSIX 后，提供者会被注册，但 Trae 原生 Agent 不会消费它；能消费它的上游 chat 面板默认关闭，且即便手动打开也不是 Trae 的原生 Agent（按项目规则不算等价实现）。
+
+**自定义模型 GUI 路线（次级体验）：架构已明，发起侧待运行时确认。**
+
+- Trae 原生 Agent 由渲染层 `[ai-chat]` 通过 AHA IPC 调用本机子进程 `ai-agent`（Rust，`resources/app/modules/ai-agent/ai_agent.dll`，`meta.json` 声明 socket 端口 40005；`main.log` 记录 `ai-agent process spawned`）。
+- `ai_agent.dll` 内含 `custom-model-proxy-client` crate（`[CustomModelProxy]` 日志前缀 49 处），路径模板 `GET /custom_model/tunnel/{id}/pending`、`POST /custom_model/tunnel/{id}/messages`，待处理请求方法包含 `sse.open` / `sse.cancel`，并区分 "HTTP mode" 与 WebSocket 模式；`product.json` 对应 `bootConfig.ws.trae.normal = wss://trae-ws-cn.mchost.guru/custom_model`。
+- 同一 DLL 的 `[LLMAdapter]` 具备本地直连能力：厂商列表 `openai / anthropic / deepseek / openrouter / xai / aws(bedrock) / foundation-models`，路径 `/v1/chat/completions`、`/v1/messages`，请求头 `Authorization: Bearer` / `x-api-key` + `anthropic-version: 2023-06-01`，并有 `llm_raw_chat_custom_model` 与 `custom_model_connectivity_check generate_http_headers` 日志。
+- 模型配置结构体字段含 `provider, is_preset, config_source, model_name, ak, base_url, custom_model_uniq_id, use_remote_service, multimodal, prompt_max_tokens, toolcall_history_max_tokens, encrypted_model_params`；管理接口 `api/ide/v1/add_custom_model`、`api/ide/v1/update_custom_model`、`api/ide/v1/get_custom_model_type_config`、`api/agent/v3/custom_model_connectivity_check` 为 Trae 服务端 API。
+- **推断**（待抓包证实）：Agent 编排在 Trae 服务端完成；服务端需要调用自定义模型时，通过反向隧道把 LLM 请求下发给本机 `ai-agent`，由本机 `LLMAdapter` 用用户填写的 Base URL/Key 实际发起 HTTP 并以 SSE 回传。因此 `http://127.0.0.1:<port>` 的本地端点在原理上可达；`use_remote_service` 字段暗示部分配置可能改由服务端直连，需确认本地地址不会命中该分支。
+- **注意事项**：对话内容与模型输出会经由 Trae 服务端中转；`ak` 字段随 `add_custom_model` 提交到服务端。`local-endpoint` 若实现，必须只接受一次性本地令牌，不得把 Codex 凭证作为 API 密钥填入 Trae。
+
+### g. 零配置缝隙穷举（同一构建，静态只读，2026-10-21）
+
+目标：找一条"装扩展即可用、不改 Trae 二进制、不猜未公开键"的路径。逐项排查结果：
+
+| 候选缝隙 | 观察 | 判定 |
+|---|---|---|
+| `vscode.lm` 提供者 | 可注册；Trae 自研 Agent 零引用（见 f） | 不可用 |
+| 扩展调用 Trae 注册的命令 | 已定位 `workbench.action.openTraeSettings`、`icube.userConfiguration.get/update`、`_icube.extended.integrations.llm.*`（仅管理 Integrations 的 provider/apiKey，写扩展自己的 `workspaceState`，不接 Base URL/模型 ID，不调 `model/add_custom_model`）、`icube.ai.agentImport` 等；无一能注册原生 Agent 自定义模型 | 不可用 |
+| 扩展直接走 Aha IPC 调 `model/add_custom_model` | GUI 实际路径是 React → `ModelAPIService` → `TransportManager` → `vscode.ahaIpc.connect()` → 本机 `ai-agent`；但 `ahaIpc` 是 Electron preload 桥（`sandbox/electron-browser/preload.js`），`extensionHostProcess.js` 全文无 `ahaIpc`，扩展 API 对象只含 `icube` / `icubeAI` / `trae`；`vscode.icube.getWebSocketRpcClient` 对应 workbench 实现为 `throw new Error("$makeRPCClient not implemented")`。`@aha-kit/ipc` 为 ZeroMQ ROUTER/DEALER + `ipc://…\aha\<name>.sock`，与 Electron 内建实现是否互通未验证 | 现状不可用；即便打通也是未公开协议 |
+| `add_custom_model` 的权威端 | `ai_agent.dll` 同时含 `api/ide/v1/add_custom_model` 等服务端路径与本地 `model_config_cache(user_id, env, function, config_data, updated_at)` 缓存表 + `keep_syncing_model_info` 同步；本地 DB（`%APPDATA%\Trae CN\ModularData\ai-agent\database.db`）非普通 SQLite 文件头，DLL 含 `[DB] Database is already encrypted` | 模型目录为服务端权威 + 加密本地缓存；写 DB 不可行 |
+| deeplink / 配置键 | `urlProtocol: trae-cn`，路由含 `/side-chat`、`/agent/share`、`/mcp-import`、`/skill-import`，无模型路由；`ai_assistant.*`、`AI.agent.*`、`trae.network.*` 配置键均与 provider/Base URL 无关 | 不存在 |
+| 环境变量 `LOCAL_MODEL_CONFIG_DIR` / `LOCAL_IAC_DIR` | 仅在 `ai_agent.dll` 环境变量名表出现各 1 次（0xA3D33B4 附近），无相邻文件名、schema、加载日志；`harness.dll` / `toolhost.dll` 为 0 次 | 证据不足；且需 ai-agent 启动前生效，不构成零配置 |
+| proposed API 白名单 | `_envEnablesProposedApiForAll` 硬编码 `true`，`product.json` 无 `extensionEnabledApiProposals`；但已暴露的 `vscode.trae` 仅 MCP provider/server/transport 与 session hook，`icubeAI` 仅 `onAiTaskComplete` | 没有形成"扩展 → 模型注册 → 原生 Agent"闭环 |
+| 补充：GUI payload | `provider` 枚举 `custom_openai_compatible` / `custom_anthropic_compatible` / **`custom_responses_compatible`**（模块内含第三项，UI 是否可见待实测）；默认追加 `/chat/completions`、`/v1/messages`、`/responses`；`auth_type 0=API_KEY, 1=AK_SK`；`config_source 1=Trae, 2=Enterprise, 3=Personal` | 对 local-endpoint 的协议选择有用 |
+
+**结论**：在"不改二进制、不猜未公开键/协议"的约束下，Trae CN 3.4.4 / 1.107.1 没有零配置接入路径。能做到的上限是：扩展启动本地端点 → 调 `workbench.action.openTraeSettings` 打开模型设置页 → 用户粘贴一次 Base URL / 一次性令牌 / 模型 ID（次级体验）。若产品原则只接受零配置，则 Trae 应标注"不支持，待厂商开放"，并向 Trae 提出需求：原生 Agent 消费 `vscode.lm`，或提供文档化的模型提供者注册 API。
+
+### h. 运行时抓包（Trae CN 3.4.4 / 1.107.1，Windows，2026-10-21）
+
+方法：在 `127.0.0.1:18080` 起一个仅记录请求、返回最小合法 Chat Completions 响应的探针（合成令牌 `probe-token-123`，不含任何真实凭证）；在 Trae 设置里以"自定义配置 / OpenAI Chat Completions / `http://127.0.0.1:18080/v1` / 模型 ID `probe-model`"添加模型，然后在 Builder 模式发送一条消息。
+
+**观察**
+
+| 项 | 连通性校验请求 | Agent 对话请求 |
+|---|---|---|
+| TCP 来源 | `127.0.0.1:52654` | `127.0.0.1:50589` |
+| 方法/路径 | `POST /v1/chat/completions`（Trae 自动在 Base URL 后拼接 `/chat/completions`） | 同左 |
+| `authorization` | `Bearer <用户填写的密钥>` | 同左 |
+| `user-agent` | `hertz`（CloudWeGo Hertz，Go 服务端框架） | 同左 |
+| `x-model-provider` | `custom_openai_compatible` | 同左 |
+| `acl-token` | 服务端内部 JWT（`authority: TCE`，`psm: flow.ide.copilot`，含 `idc` / `physical_cluster` / `zone: China-North` 等集群字段） | 同左（不同 cluster） |
+| `x-forwarded-for` | `fdbd:dc03:…`（服务端内网 IPv6） | 同左 |
+| 请求体字段 | `model, max_tokens: 16000, stream: true, messages` | `model, max_tokens: 16000, stream: true, tools, messages` |
+| `messages` | 1 条 user，`content` 数组：`image_url`（32×32 PNG data URL）+ `text: "图片背景是什么颜色"` | `system`（字符串，约 21 KB，TraeCode Agent 提示词）+ `user`（6 个 `text` 段：终端状态、todo 提醒、工作区 AGENTS.md 规则、语言设置、模式、`<user_input>`） |
+| `tools` | 无 | 27 个 `{type:"function", function:{name, description, parameters}}`，约 70 KB：Task、Skill、Glob、LS、Grep、Read、WebSearch、WebFetch、RunCommand、CheckCommandStatus、StopCommand、GetDiagnostics、DeleteFile、SearchReplace、Write、TodoWrite、AskUserQuestion、NotifyUser、OpenPreview、get_goal、create_goal、update_goal、PureShowWidget、Schedule、RequestAuthorization、browser_waiting_for_user_interaction、run_mcp |
+| 未出现的字段 | `stream_options`、`tool_choice`、`temperature`、`top_p` | 同左 |
+| 探针响应 | 非流式/流式 `PROBE_OK` 均被接受；模型添加成功，对话正常显示 | 同左 |
+
+**结论**
+
+1. **TCP 连接由本机发起**（本机 `ai-agent` 进程），`http://127.0.0.1` 被接受 → `local-endpoint` 路线成立，不降级。
+2. **HTTP 报文由 Trae 服务端组装**（`hertz` UA、内部 JWT、内网 `x-forwarded-for`）后经隧道下发本机转发，证实 f 节推断：提示词、工具清单、工具结果与模型输出全部经由字节跳动服务端中转。README/用户提示须明确告知。
+3. `local-endpoint` 的 Trae 适配面 = **OpenAI Chat Completions 流式 + function tools + 多模态 `image_url` 输入**，需转换为 Codex Responses API；连通性校验会发送一张图片，端点必须真实转发（不得伪造成功）。
+4. 端点应忽略并**不记录** `acl-token`、`x-forwarded-for` 等第三方内部头；仅校验 `authorization` 中的一次性本地令牌。
+
 ### 尚待实测
 
 - 国际版 TRAE 文档正文（未能获取，待实测/重新抓取）。
-- 请求发起侧（见 b）；是否允许 `http://127.0.0.1`。
-- Chat Completions 格式下的工具调用往返、流式、推理内容字段（`reasoning_content`）。
+- 工具调用**往返**：探针未返回 `tool_calls`，Trae 对流式 `tool_calls` delta 的解析、`role: tool` 消息回填格式、以及 `reasoning_content` 字段的处理仍需在真实端点上验证。
+- API 格式下拉是否可见第三项 `custom_responses_compatible`（若可见则可免去 Chat Completions → Responses 转换）。
 - 自定义模型在 IDE 侧边对话与 SOLO Agent 两种模式下的行为差异。
 
 ## Cursor
@@ -211,13 +280,13 @@ VS Code 已内置官方 **Codex 哈尼斯**：安装 OpenAI Codex 扩展，或�
 | 档位 | 目标 | 说明 |
 | --- | --- | --- |
 | MVP 零配置 | VS Code（Copilot Chat） | `LanguageModelChatProvider` 扩展 + SIWC 浏览器登录，扩展进程内直连，无需本地 HTTP 端口。遗留摩擦：模型选择器需用户点选一次；Copilot 哈尼斯需开实验设置；补全/语义搜索不受益。需与官方 Codex 哈尼斯明确差异化。 |
-| 后续次级体验（手填一次，不在 MVP 内） | Qoder 新版应用、Trae | 由 `local-endpoint` 提供本地 OpenAI Compatible 服务（Qoder 可选 Responses，Trae 仅 Chat Completions / Messages）+ 一次性令牌，并提供"复制配置"引导；用户在设置里手填一次 Base URL / Key / Model ID。两者请求发起侧均待抓包确认；若确认为服务端发起则降级为不支持。 |
+| 次级体验（粘贴一次） | Trae（已实现）、Qoder 新版应用（后续） | 由 `local-endpoint` 提供本地 OpenAI Compatible 服务（Trae 走 Chat Completions；Qoder 可能需 Responses 入站）+ 安装级密钥，并提供"复制配置"引导；用户在设置里手填一次 Base URL / Key / Model ID。Trae 已抓包确认 TCP 由本机发起（见 Trae 节 h），但报文由厂商服务端组装、对话内容经服务端中转；Qoder 新版应用请求发起侧仍待抓包确认，若确认为服务端发起则降级为不支持。 |
 | 不支持，待厂商开放 | Qoder IDE、Cursor | Qoder IDE 无自定义 Base URL；Cursor 请求由服务端发起且 OpenAI BYOK 仅限非推理模型。不投入适配器开发，README 中不得声称支持；仅跟踪厂商更新。 |
 
 架构含义：
 
-- 核心协议层（SIWC 登录与刷新、Responses ↔ 编辑器消息转换、工具调用配对、预览限制过滤）与 VS Code 适配器解耦，后续可复用到 `local-endpoint`。
-- `local-endpoint` 是可选组件，仅服务次级体验目标、仅在该路线下启动，必须绑定 127.0.0.1、要求一次性令牌，并且在实测确认请求发起侧之前不对外声明支持。
+- 核心协议层（SIWC 登录与刷新、Responses ↔ 核心消息转换、工具调用配对、预览限制过滤）与编辑器适配器解耦；`local-endpoint` 已在其上复用同一核心。
+- `local-endpoint` 是可选组件，仅服务次级体验目标、仅在该路线下自动启动，绑定 127.0.0.1、要求安装级密钥；新增目标编辑器前仍须先抓包确认请求发起侧。
 
 ## 每端验证步骤
 

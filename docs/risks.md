@@ -160,7 +160,7 @@ Anthropic 官方条款原文：
 
 - 不实现、不捆绑、不推荐任何读取 Claude Code OAuth token、复用 claude.ai 登录、或模拟 Claude Code 客户端的方案。Anthropic 原文："does not permit third-party developers to offer Claude.ai login into their own applications, or to route requests through Free, Pro, or Max plan credentials on behalf of their users"，并保留无通知执法权。OpenCode 已在 1.3.0 移除同类插件。
 - 允许保留的 Claude 提供者形态：用户自带 Anthropic API key（Console 计费）、Bedrock / Vertex / Foundry 凭证。这属于 Anthropic 明确允许的 "customers provision and manage their own API keys"。
-- "等待官方开放"：目前未发现 Anthropic 有对应 OpenAI SIWC 的第三方订阅额度共享计划；应在 docs/mvp.md 中把 Claude 订阅接入标注为"仅在 Anthropic 发布官方第三方授权机制后再评估"，而不是作为路线图承诺。
+- "等待官方开放"：目前未发现 Anthropic 有对应 OpenAI SIWC 的第三方订阅额度共享计划；应在 docs/roadmap.md 中把 Claude 订阅接入标注为"仅在 Anthropic 发布官方第三方授权机制后再评估"，而不是作为路线图承诺。
 - 提供者接口设计仍应保持中立（AGENTS.md 要求），但不要为订阅令牌格式预留 Claude 专用字段。
 
 ## 5. 用户告知文案草稿（首次连接时显示）

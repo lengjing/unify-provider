@@ -1,0 +1,13 @@
+{
+  "extension.displayName": "Unify Provider",
+  "extension.description": "把你已有的 AI 订阅接进编辑器原生 Chat 与 Agent。VS Code 零配置；Trae 粘贴一次。首个提供者：Codex（ChatGPT 订阅），通过 Sign in with ChatGPT 登录。",
+  "provider.displayName": "Unify Provider（ChatGPT 订阅）",
+  "command.connect.title": "登录 ChatGPT",
+  "command.disconnect.title": "断开连接",
+  "command.manage.title": "管理 Unify Provider",
+  "command.showStatus.title": "显示状态",
+  "command.showLogs.title": "显示日志",
+  "command.localEndpoint.showConfig.title": "本地端点：复制配置（Trae）",
+  "command.localEndpoint.stop.title": "本地端点：停止",
+  "command.localEndpoint.removeConfiguration.title": "本地端点：移除已存储的密钥与端口"
+}

@@ -6,6 +6,7 @@ import { cancellation, ChatModelProvider } from './provider.js';
 import { CompletionStreamError, ConversionError } from './convert.js';
 import { localizeConversionError } from './localization.js';
 import { logError } from './logging.js';
+import { LocalEndpointManager } from './local-endpoint.js';
 
 const usageUrl = vscode.Uri.parse('https://chatgpt.com/settings/usage');
 let shutdown: (() => Promise<void>) | undefined;
@@ -45,6 +46,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   let connectionController: AbortController | undefined;
   let previousStatus: ConnectionState['status'] | undefined;
   let chat: ChatModelProvider;
+  let localEndpoint: LocalEndpointManager;
 
   const refreshStatus = async () => {
     try {
@@ -63,6 +65,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         : state.status === 'reauthentication-required' ? vscode.l10n.t('$(warning) ChatGPT: Sign in again')
         : vscode.l10n.t('$(plug) ChatGPT: Disconnected');
       const tooltip = new vscode.MarkdownString(vscode.l10n.t('Unify Provider · Using ChatGPT plan\n\n[Manage usage](https://chatgpt.com/settings/usage)'));
+      const endpoint = localEndpoint?.running;
+      if (endpoint) tooltip.appendMarkdown(`\n\n${vscode.l10n.t('Local endpoint: {0} (loopback only)', endpoint.url)}`);
       statusBar.tooltip = tooltip;
       if (state.status !== previousStatus) {
         previousStatus = state.status;
@@ -167,33 +171,54 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (action) await vscode.env.openExternal(usageUrl);
   };
   const manage = async () => {
+    const endpointLabel = localEndpoint.running
+      ? vscode.l10n.t('Local endpoint: copy configuration')
+      : vscode.l10n.t('Local endpoint: start and copy configuration');
     const choice = await vscode.window.showQuickPick([
       { label: vscode.l10n.t('Continue with ChatGPT'), id: 'connect' },
       { label: vscode.l10n.t('Disconnect ChatGPT'), id: 'disconnect' },
       { label: vscode.l10n.t('Show status'), id: 'status' },
       { label: vscode.l10n.t('Show logs'), id: 'logs' },
       { label: vscode.l10n.t('Manage usage'), id: 'usage' },
+      { label: endpointLabel, id: 'endpoint', description: localEndpoint.isTraeHost ? vscode.l10n.t('for this editor\'s custom model settings') : vscode.l10n.t('secondary route; VS Code does not need this') },
     ], { title: vscode.l10n.t('Unify Provider · ChatGPT plan') });
     if (choice?.id === 'connect') await signIn();
     if (choice?.id === 'disconnect') await disconnect();
     if (choice?.id === 'status') await showStatus();
     if (choice?.id === 'logs') channel.show();
     if (choice?.id === 'usage') await vscode.env.openExternal(usageUrl);
+    if (choice?.id === 'endpoint') await localEndpoint.showConfig();
   };
-  context.subscriptions.push(statusBar, chat,
+  localEndpoint = new LocalEndpointManager(context, registry, provider.id, logger, async () => { await signIn(); });
+  context.subscriptions.push(statusBar, chat, localEndpoint,
     vscode.lm.registerLanguageModelChatProvider('unify-provider', chat),
     vscode.commands.registerCommand('unifyProvider.connect', run(signIn)),
     vscode.commands.registerCommand('unifyProvider.disconnect', run(disconnect)),
     vscode.commands.registerCommand('unifyProvider.manage', run(manage)),
     vscode.commands.registerCommand('unifyProvider.showStatus', run(showStatus)),
+    vscode.commands.registerCommand('unifyProvider.localEndpoint.showConfig', run(() => localEndpoint.showConfig())),
+    vscode.commands.registerCommand('unifyProvider.localEndpoint.stop', run(() => localEndpoint.stop())),
+    vscode.commands.registerCommand('unifyProvider.localEndpoint.removeConfiguration', run(() => localEndpoint.removeConfiguration())),
     context.secrets.onDidChange(() => { void refreshStatus(); }),
   );
   shutdown = async () => {
     connectionController?.abort();
     await connection?.catch(() => {});
+    await localEndpoint.stop();
     await provider.dispose();
   };
   await refreshStatus();
+  // Trae's native agent does not consume vscode.lm (docs/compatibility.md); offer the loopback route there.
+  if (localEndpoint.isTraeHost) {
+    try {
+      await localEndpoint.start();
+      await refreshStatus();
+      void localEndpoint.showGuideOnce();
+    } catch (error) {
+      logError(channel, error);
+      void vscode.window.showWarningMessage(vscode.l10n.t('Unify Provider could not start its local endpoint. Check the output log.'));
+    }
+  }
 }
 
 export async function deactivate(): Promise<void> {

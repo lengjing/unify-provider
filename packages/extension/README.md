@@ -1,12 +1,13 @@
 # Unify Provider
 
-Connect your ChatGPT subscription (Codex allowance) to VS Code's native Chat and Agent (Copilot Chat) through OpenAI's official **Sign in with ChatGPT**.
+Use the AI subscriptions you already have inside your editor's **native** Chat and Agent. The first provider is **Codex** (your ChatGPT plan) through OpenAI's official **Sign in with ChatGPT**; more providers follow behind the same vendor-neutral interface.
 
-No API key, URL, port, separate backend, Node.js, or Codex CLI is needed.
+- **VS Code**: zero configuration — sign in once, pick a model in Copilot Chat. No API key, URL, port, separate backend, Node.js, or Codex CLI.
+- **Trae**: the extension runs a loopback endpoint and generates the configuration for you; paste it once into Trae's custom model settings.
 
 ## Requirements
 
-- **VS Code 1.104 or later**, running locally.
+- **VS Code 1.104 or later** or **Trae** (verified with Trae CN 3.4.4), running locally.
 - **GitHub Copilot Chat** for the native Chat/Agent interface. Availability of bring-your-own-model (BYOK) features depends on your VS Code version and organization policies; current VS Code documentation does not require a Copilot subscription for BYOK models.
 - A **ChatGPT account eligible for Sign in with ChatGPT plan usage**.
 - Network access to **auth.openai.com** and **api.openai.com**, plus a browser for sign-in.
@@ -22,6 +23,21 @@ No API key, URL, port, separate backend, Node.js, or Codex CLI is needed.
 
 For the **Copilot harness / Agents window (Agent Host)**, enable the experimental VS Code setting **`chat.agentHost.byokModels.enabled`**. This setting may change or be removed. The Local harness is a separate path. Unify Provider does not change your settings automatically.
 
+## Trae
+
+Trae's native agent does not read VS Code's language-model API, so the extension starts a small OpenAI-compatible endpoint on 127.0.0.1 when it detects Trae.
+
+1. Sign in (status bar → **Continue with ChatGPT**).
+2. Status bar → **Local endpoint: copy configuration**. Copy the Base URL (http://127.0.0.1:46117/v1), the API key and a model ID from the list.
+3. Trae: **Settings → Models → Add custom model → Custom configuration**. API format **OpenAI Chat Completions**, leave the "full URL" switch off, paste the three values, confirm.
+4. In a Builder/Agent conversation, pick the model you added. Trae's **Auto** mode only uses Trae's built-in models.
+
+Notes:
+
+- The key is generated per install and stored in Secret Storage; it is not your ChatGPT credential. **Local Endpoint: Remove Stored Key and Port** deletes it (Trae's own settings are untouched).
+- If port 46117 is taken, the endpoint falls back to another port and tells you to update the Base URL.
+- Trae composes requests on its servers and relays them through the local agent process, so prompts, tool definitions and model output transit Trae's infrastructure. Latency depends on that relay as well as on OpenAI.
+
 ## Commands
 
 Open the Command Palette to use these commands:
@@ -33,6 +49,9 @@ Open the Command Palette to use these commands:
 | **Unify Provider: Manage Unify Provider** | Open account actions: sign in, disconnect, show status, show logs, or Manage usage. |
 | **Unify Provider: Show Status** | Show the current connection/account status and a Manage usage action. |
 | **Unify Provider: Show Logs** | Open the **Unify Provider** Output channel for safe diagnostics. |
+| **Unify Provider: Local Endpoint: Copy Configuration (Trae)** | Start the loopback endpoint if needed and copy Base URL / key / model IDs. |
+| **Unify Provider: Local Endpoint: Stop** | Stop the loopback endpoint for this session. |
+| **Unify Provider: Local Endpoint: Remove Stored Key and Port** | Delete the generated key and remembered port. |
 
 ## Status bar
 

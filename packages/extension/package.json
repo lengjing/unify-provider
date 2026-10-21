@@ -1,5 +1,5 @@
 {
-  "name": "unify-provider-vscode",
+  "name": "unify-provider",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
   "version": "0.1.0",
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lengjing/unify-provider.git",
-    "directory": "packages/vscode-extension"
+    "directory": "packages/extension"
   },
   "private": true,
   "engines": {
@@ -17,8 +17,9 @@
     "node": ">=22"
   },
   "categories": ["AI", "Chat"],
-  "keywords": ["chatgpt", "codex", "copilot", "language model", "byok"],
+  "keywords": ["chatgpt", "codex", "copilot", "trae", "language model", "byok"],
   "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
   "l10n": "./l10n",
   "extensionKind": ["ui", "workspace"],
   "contributes": {
@@ -54,6 +55,21 @@
         "command": "unifyProvider.showLogs",
         "title": "%command.showLogs.title%",
         "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.localEndpoint.showConfig",
+        "title": "%command.localEndpoint.showConfig.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.localEndpoint.stop",
+        "title": "%command.localEndpoint.stop.title%",
+        "category": "%extension.displayName%"
+      },
+      {
+        "command": "unifyProvider.localEndpoint.removeConfiguration",
+        "title": "%command.localEndpoint.removeConfiguration.title%",
+        "category": "%extension.displayName%"
       }
     ]
   },
@@ -63,10 +79,11 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
     "vscode:prepublish": "npm run build",
-    "package": "vsce package --no-dependencies --baseContentUrl https://github.com/lengjing/unify-provider/blob/main/packages/vscode-extension --baseImagesUrl https://github.com/lengjing/unify-provider/raw/main/packages/vscode-extension"
+    "package": "vsce package --no-dependencies --baseContentUrl https://github.com/lengjing/unify-provider/blob/main/packages/extension --baseImagesUrl https://github.com/lengjing/unify-provider/raw/main/packages/extension"
   },
   "devDependencies": {
     "@unify-provider/core": "*",
+    "@unify-provider/local-endpoint": "*",
     "@types/vscode": "~1.104.0",
     "@vscode/vsce": "^3.6.0",
     "esbuild": "^0.25.0"

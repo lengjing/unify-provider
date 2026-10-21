@@ -2,9 +2,24 @@
   "name": "@unify-provider/local-endpoint",
   "version": "0.1.0",
   "private": true,
-  "description": "Plugin-managed loopback compatibility endpoint for editors whose native agents require an HTTP model API; pending compatibility verification.",
+  "license": "MIT",
+  "description": "Plugin-managed loopback OpenAI-compatible endpoint for editors whose native agents require an HTTP model API (secondary experience: Trae).",
   "type": "module",
   "engines": { "node": ">=22" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
   "dependencies": {
     "@unify-provider/core": "*"
   }

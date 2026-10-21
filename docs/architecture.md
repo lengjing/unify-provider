@@ -17,7 +17,7 @@
 ## 两侧适配
 
 - 编辑器侧：VS Code 使用原生模型提供者 API；次级体验编辑器使用本地 OpenAI 兼容服务。能够复用的插件 API 共用实现；不同机制使用独立适配器。
-- 提供者侧：MVP 实现 Codex；后续提供者仅限官方允许方式（见 [docs/mvp.md「后续提供者」](mvp.md#后续提供者)）。提供者负责登录和协议，核心不依赖特定厂商。
+- 提供者侧：首个提供者为 Codex；后续提供者仅限官方允许方式（见 [docs/roadmap.md「后续提供者」](roadmap.md#后续提供者)）。提供者负责登录和协议，核心不依赖特定厂商。
 - 核心：账户/模型标识、提供者注册、请求路由、流式事件、取消。工具调用由编辑器执行，结果随下一次请求传回。
 - 传输：VS Code 扩展直接调用核心；`local-endpoint` 是可选传输，把核心暴露为 OpenAI 兼容 HTTP 端点。
 
@@ -35,7 +35,7 @@ SIWC 仅面向开源、本地托管应用：项目必须保持开源，不收费
 
 ## local-endpoint 的定位
 
-`packages/local-endpoint` 仅服务次级体验编辑器（Qoder 新版应用、Trae），**MVP 不实现**。实现前提：抓包确认目标编辑器的自定义模型请求由本机发起（[compatibility.md](compatibility.md) 两者均标注"待实测"）。实现时仅绑定 `127.0.0.1`、要求一次性本地令牌、由插件/本地程序负责启动与关闭，并提供"复制配置"引导。Qoder 可走 Responses API，Trae 仅 Chat Completions / Messages，因此需要两种出站协议适配。
+`packages/local-endpoint` 仅服务次级体验编辑器。Trae 已按前提完成抓包（[compatibility.md](compatibility.md) Trae 节 h：TCP 由本机 `ai-agent` 发起，报文由 Trae 服务端组装后经隧道下发）并实现：仅绑定 `127.0.0.1`、`Authorization: Bearer` 安装级密钥、OpenAI Chat Completions（流式、function tools、`image_url` data URL）→ 核心契约 → 提供者。扩展负责启动/关闭、密钥与端口持久化、"复制配置"引导。Qoder 新版应用待抓包后再决定是否增加 Responses 入站格式。
 
 ## 当前代码
 

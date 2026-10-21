@@ -1,14 +1,18 @@
-# MVP：VS Code × Codex（Sign in with ChatGPT）
+# 路线图
 
-## 范围
+## 已交付
 
-MVP 只包含一条路径：**VS Code（Copilot Chat）原生 Agent × Codex 订阅模型**，Codex 通过 OpenAI 官方 Sign in with ChatGPT（SIWC）"ChatGPT plan usage" 开源客户端流程接入（选型依据见 [docs/risks.md §3](risks.md)）。
+- **VS Code × Codex**：原生 Agent 通过 `LanguageModelChatProvider` 使用 ChatGPT 订阅模型，Codex 通过 OpenAI 官方 Sign in with ChatGPT（SIWC）"ChatGPT plan usage" 开源客户端流程接入（选型依据见 [docs/risks.md §3](risks.md)）。
+- **Trae × Codex**：同一扩展启动 `local-endpoint`，用户粘贴一次 Base URL / 密钥 / 模型 ID（证据见 [compatibility.md](compatibility.md)）。
 
-不在 MVP 内：
+## 范围之外
 
-- Qoder 新版应用、Trae 的次级体验路线（`local-endpoint`），见 [docs/compatibility.md「对产品范围的影响」](compatibility.md#对产品范围的影响)。
 - Qoder IDE、Cursor：不支持，待厂商开放。
 - 任何 Claude 订阅接入（见「后续提供者」）。
+
+## 首个里程碑的要求（VS Code × Codex）
+
+以下为首个里程碑的定义与验收标准，保留作为后续提供者/编辑器的基准。
 
 ## 必须覆盖
 
@@ -45,13 +49,14 @@ MVP 只包含一条路径：**VS Code（Copilot Chat）原生 Agent × Codex 订
 
 进行中：
 
-- [ ] `packages/core` Codex 提供者：SIWC 登录（动态注册、PKCE、loopback 回调、ID token 校验）、秘密存储、刷新去重、撤销处理、模型发现、Responses ↔ 核心消息转换与预览限制过滤。
-- [ ] `packages/vscode-extension`：`LanguageModelChatProvider` 注册、`managementCommand`（登录/登出/重新登录）、状态提示、流式与取消、工具调用配对。
-- [ ] VS Code 真实项目端到端验证并记录证据。
+- [x] `packages/core` Codex 提供者：SIWC 登录（动态注册、PKCE、loopback 回调、ID token 校验）、秘密存储、刷新去重、撤销处理、模型发现、Responses ↔ 核心消息转换与预览限制过滤。
+- [x] `packages/extension`：`LanguageModelChatProvider` 注册、`managementCommand`（登录/登出/重新登录）、状态提示、流式与取消、工具调用配对。
+- [ ] VS Code 真实项目端到端验证并按 compatibility.md 格式记录证据。
 
 后续：
 
-- [ ] `packages/local-endpoint`：面向 Qoder 新版应用 / Trae 的本地 OpenAI 兼容服务（先抓包确认请求发起侧为本机）。
+- [x] `packages/local-endpoint`：Trae 路线已抓包确认并实现（Chat Completions 入站、回环绑定、安装级密钥；在 Trae CN 3.4.4 完成 Agent 工具往返）。
+- [ ] Qoder 新版应用：抓包确认请求发起侧后复用 `local-endpoint`（可能需增加 Responses 入站格式）。
 - [ ] Agent Host（Copilot 哈尼斯）实验设置下的可用性验证。
 - [ ] 打包、安装、升级、卸载与异常恢复验证；发布到扩展市场。
 - [x] 开源许可证：MIT（根目录 `LICENSE`，满足 SIWC 开源、本地托管要求）。

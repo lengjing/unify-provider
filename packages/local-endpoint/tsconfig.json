@@ -1,9 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["node", "vscode"],
     "paths": { "@unify-provider/core": ["../core/src/index.ts"] }
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]

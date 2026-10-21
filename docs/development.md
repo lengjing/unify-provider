@@ -1,6 +1,6 @@
 # Development
 
-Contributor setup, extension debugging, packaging, and verification live here. The [VS Code extension README](../packages/vscode-extension/README.md) is user-facing. For scope and acceptance criteria, see [MVP](mvp.md); for compatibility claims and evidence requirements, see [Compatibility](compatibility.md). A successful build or install is not evidence of native Agent compatibility.
+Contributor setup, extension debugging, packaging, and verification live here. The [extension README](../packages/extension/README.md) is user-facing. For scope and roadmap, see [Roadmap](roadmap.md); for compatibility claims and evidence requirements, see [Compatibility](compatibility.md). A successful build or install is not evidence of native Agent compatibility.
 
 ## Repository structure and workspaces
 
@@ -14,12 +14,12 @@ packages/
     src/providers/       Subscription providers (Codex via SIWC)
     src/transports/      Transports for later compatibility interfaces
     test/
-  vscode-extension/      unify-provider-vscode: LanguageModelChatProvider adapter
-    src/                 Extension, host integration, message/event conversion
+  extension/             unify-provider: the single editor extension (VS Code LanguageModelChatProvider + Trae loopback route)
+    src/                 Extension, host integration, message/event conversion, local endpoint manager
     test/                Unit tests, without the VS Code runtime
     .vscode/             Extension Development Host launch/build task
     l10n/                Runtime translations
-  local-endpoint/        Secondary targets only; not implemented in the MVP
+  local-endpoint/        @unify-provider/local-endpoint: OpenAI Chat Completions <-> core, loopback HTTP server (Trae)
 docs/                    Architecture, compatibility, MVP, risks, development
 ```
 
@@ -38,7 +38,7 @@ The root `check` script runs workspace typechecking, tests, and builds, skipping
 
 ## F5 debugging
 
-1. **Open `packages/vscode-extension` as a separate folder in VS Code.** The package's `.vscode/launch.json` assumes `${workspaceFolder}` is the extension package, not the repository root.
+1. **Open `packages/extension` as a separate folder in VS Code.** The package's `.vscode/launch.json` assumes `${workspaceFolder}` is the extension package, not the repository root.
 2. Select **Unify Provider Extension** and press **F5**. The `extensionHost` launch passes `--extensionDevelopmentPath=${workspaceFolder}` and opens an Extension Development Host.
 3. Its `preLaunchTask`, **build extension**, is defined in `.vscode/tasks.json`. It runs `npm run build` with the extension folder as the working directory; there is no problem matcher.
 4. Set breakpoints in `src/*.ts`. `outFiles` points at `dist/**/*.js`, and esbuild sourcemaps support debugging.
@@ -46,28 +46,40 @@ The root `check` script runs workspace typechecking, tests, and builds, skipping
 
 ## esbuild and VSIX packaging
 
-esbuild bundles core source and the extension into CJS. The only external module is `vscode`; the extension has no runtime npm dependencies. `@unify-provider/core` is a workspace development dependency, and the extension tsconfig maps to core source to avoid stale core `dist` output.
+esbuild bundles the extension into CJS. The only external module is `vscode`; the extension has no runtime npm dependencies. `@unify-provider/core` and `@unify-provider/local-endpoint` are workspace development dependencies; both `esbuild.mjs` (`alias`) and `tsconfig.json` (`paths`) resolve them to **source**, so the extension bundle never depends on workspace build order or stale `dist` output.
 
 At the repository root:
 
 ```sh
-npm run package --workspace unify-provider-vscode
+npm run package --workspace unify-provider
 ```
 
 This invokes `vsce package --no-dependencies`; the `vscode:prepublish` hook first runs the esbuild build. The package script sets GitHub base URLs for README content and images. `.vscodeignore` excludes dependencies, source, tests, debug configuration, build configuration, and existing VSIX files. The VSIX includes the MIT LICENSE and the English user README; the former extension `README.zh-CN.md` has been removed. The root Chinese README is retained.
 
-The extension is published under the Marketplace publisher `gamstek` (`publisher` in `packages/vscode-extension/package.json`); the extension ID is therefore `gamstek.unify-provider-vscode`. The VSIX must be uploaded from an account that owns that publisher.
+The extension is published under the Marketplace publisher `gamstek` (`publisher` in `packages/extension/package.json`); the extension ID is therefore `gamstek.unify-provider`. The VSIX must be uploaded from an account that owns that publisher.
 
 ### Install a local VSIX
 
 For the current version, from the repository root:
 
 ```sh
-code --install-extension packages/vscode-extension/unify-provider-vscode-0.1.0.vsix
+code --install-extension packages/extension/unify-provider-0.1.0.vsix
+# Trae CN (Windows)
+& "$env:LOCALAPPDATA\Programs\Trae CN\bin\trae-cn.cmd" --install-extension packages/extension/unify-provider-0.1.0.vsix
 ```
 
 Alternatively, use **Extensions: Install from VSIX...** in VS Code. Adjust the filename when the version changes. Verify install, upgrade, and uninstall behavior independently of packaging success.
 
+## Local endpoint (Trae route)
+
+`packages/local-endpoint` is a plain Node HTTP server over `@unify-provider/core`; it has no VS Code dependency and is unit-tested with real loopback sockets (`npm test --workspace @unify-provider/local-endpoint`). The extension's `src/local-endpoint.ts` owns the lifecycle:
+
+- Starts automatically when `vscode.env.appName` contains "Trae"; otherwise only on demand from the manage menu.
+- Key: `context.secrets` `unifyProvider.localEndpoint.token`; port: `globalState` `unifyProvider.localEndpoint.port` (preferred 46117, falls back to an OS port on `EADDRINUSE` and warns). **Local Endpoint: Remove Stored Key and Port** deletes both; Trae's own settings are never written.
+- "Copy configuration" is a QuickPick; opening Trae's model settings uses `workbench.action.openTraeSettings` when registered and falls back to `workbench.action.openSettings`.
+- Request logs include `queueMs` / `firstOutputMs` / `upstreamMs` to separate endpoint overhead from provider latency. Trae adds its own relay latency (server → tunnel → local agent → endpoint) that is not visible here.
+
+To re-verify Trae after a Trae update, follow the per-editor steps in [Compatibility](compatibility.md) and record the Trae version, the request shape observed at the endpoint, and a native-agent tool round-trip.
 ## Core interface dependency
 
 The extension depends on `createCodexProvider({ host, agentName: 'Unify Provider' })`, exported by `@unify-provider/core`, returning a real `SubscriptionProvider` with `id === 'codex'`. The activation path also supplies a safe logger. Core owns SIWC, connection restoration/token refresh, model discovery, inference, and disconnection.
@@ -76,7 +88,7 @@ Activation uses a dynamic import and runtime checks. If the factory export is mi
 
 ## Internationalization
 
-- `packages/vscode-extension/package.nls.json` contains default English manifest strings: extension display name/description, provider display name, and command titles. `package.nls.zh-cn.json` supplies Simplified Chinese translations for those `%key%` references in `package.json`.
+- `packages/extension/package.nls.json` contains default English manifest strings: extension display name/description, provider display name, and command titles. `package.nls.zh-cn.json` supplies Simplified Chinese translations for those `%key%` references in `package.json`.
 - Runtime UI uses English source strings through `vscode.l10n.t(...)`. The manifest's `l10n: "./l10n"` points at runtime translations, currently `l10n/bundle.l10n.zh-cn.json`; there is no separate default English bundle.
 - Keep translated strings, placeholders, and required SIWC wording in sync. Removing the extension Chinese README does not remove Chinese UI localization.
 
@@ -125,4 +137,4 @@ The notes below preserve the former extension README's development caveats. They
 
 Real sign-in, native Agent, cancellation, restart, refresh/revocation, quota, remote, and UI behavior remain unverified in practice. Extension unit tests cover message/event conversion without the VS Code runtime and are not compatibility evidence. Packaging/check results must not be presented as completing this checklist.
 
-Qoder IDE and Cursor: **Not supported, pending vendor support**. Other editors are outside the extension's scope; the new Qoder desktop app and Trae are separate, later secondary targets, not MVP support claims.
+Qoder IDE and Cursor: **Not supported, pending vendor support**. Trae is supported through the loopback endpoint (one-time paste); the new Qoder desktop app is a later target on the same route.

@@ -1,0 +1,13 @@
+{
+  "extension.displayName": "Unify Provider",
+  "extension.description": "Use the AI subscriptions you already have inside your editor's native Chat and Agent. Zero configuration in VS Code; one-time paste in Trae. First provider: Codex (ChatGPT plan) via Sign in with ChatGPT.",
+  "provider.displayName": "Unify Provider (ChatGPT plan)",
+  "command.connect.title": "Sign in with ChatGPT",
+  "command.disconnect.title": "Disconnect",
+  "command.manage.title": "Manage Unify Provider",
+  "command.showStatus.title": "Show Status",
+  "command.showLogs.title": "Show Logs",
+  "command.localEndpoint.showConfig.title": "Local Endpoint: Copy Configuration (Trae)",
+  "command.localEndpoint.stop.title": "Local Endpoint: Stop",
+  "command.localEndpoint.removeConfiguration.title": "Local Endpoint: Remove Stored Key and Port"
+}
