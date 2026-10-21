@@ -1,9 +1,9 @@
 {
-  "name": "unify-provider",
+  "name": "unify-provider-workspace",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Zero-manual-configuration subscription model connections for native editor agents.",
+  "description": "Unified AI provider connector for native editor agents (monorepo root).",
   "type": "module",
   "engines": { "node": ">=22" },
   "workspaces": ["packages/*"],
@@ -11,7 +11,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build",
+    "version:bump": "node scripts/version.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

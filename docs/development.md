@@ -34,7 +34,7 @@ npm install
 npm run check
 ```
 
-The root `check` script runs workspace typechecking, tests, and builds, skipping scripts absent from a workspace. GitHub Actions (`.github/workflows/ci.yml`) runs the same `npm run check` on Ubuntu and Windows with Node 22 and 24 for every push to `main`, every pull request and every `v*` tag. Only a `v*` tag packages the VSIX: the tag must equal `v` + the version in `packages/extension/package.json`, after which the VSIX is uploaded as the `unify-provider-vsix` artifact and attached to a GitHub Release with generated notes. It does not run real browser sign-in or VS Code end-to-end verification. Use synthetic credentials in tests and never record real credentials.
+The root `check` script runs workspace typechecking, tests, and builds, skipping scripts absent from a workspace. GitHub Actions (`.github/workflows/ci.yml`) runs the same `npm run check` on Ubuntu and Windows with Node 22 and 24 for every push to `main`, every pull request and every `v*` tag. Only a `v*` tag packages the VSIX: the root and every workspace package must share one version and the tag must equal `v` + that version, after which the VSIX is uploaded as the `unify-provider-vsix` artifact and attached to a GitHub Release with generated notes. It does not run real browser sign-in or VS Code end-to-end verification. Use synthetic credentials in tests and never record real credentials.
 
 ## F5 debugging
 
@@ -43,6 +43,18 @@ The root `check` script runs workspace typechecking, tests, and builds, skipping
 3. Its `preLaunchTask`, **build extension**, is defined in `.vscode/tasks.json`. It runs `npm run build` with the extension folder as the working directory; there is no problem matcher.
 4. Set breakpoints in `src/*.ts`. `outFiles` points at `dist/**/*.js`, and esbuild sourcemaps support debugging.
 5. After changes, run `npm run build` in the extension folder and restart debugging, or run `npm run watch` in another terminal to rebuild while editing. Restart/reload the host to use the new bundle.
+
+## Versioning and releases
+
+All packages (root, `core`, `extension`, `local-endpoint`) move together. Bump them in one step:
+
+```sh
+npm run version:bump -- patch          # or minor / major / 1.2.3; edits package.json files and the lockfile
+npm run version:bump -- patch --tag    # additionally commits "vX.Y.Z" and creates an annotated tag (requires a clean tree)
+git push && git push origin vX.Y.Z     # the tag triggers the release job in CI
+```
+
+`scripts/version.mjs` rewrites only the `"version"` line of each manifest, so formatting is preserved; it refuses to run if the packages are already out of sync.
 
 ## esbuild and VSIX packaging
 

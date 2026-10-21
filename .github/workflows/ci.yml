@@ -47,14 +47,20 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # The tag must match the extension version so the published VSIX is the one being tagged.
-      - name: Verify tag matches extension version
+      # The tag must match the version shared by the root and every workspace package.
+      - name: Verify tag matches package versions
         run: |
-          version="$(node -p "require('./packages/extension/package.json').version")"
-          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match packages/extension version v$version" >&2
-            exit 1
-          fi
+          node -e '
+            const fs = require("fs");
+            const files = ["package.json", ...fs.readdirSync("packages").map(d => `packages/${d}/package.json`)];
+            const versions = new Set(files.map(f => JSON.parse(fs.readFileSync(f, "utf8")).version));
+            if (versions.size !== 1) { console.error("package versions differ:", [...versions]); process.exit(1); }
+            const [version] = versions;
+            if (`v${version}` !== process.env.GITHUB_REF_NAME) {
+              console.error(`tag ${process.env.GITHUB_REF_NAME} does not match package version v${version}`); process.exit(1);
+            }
+            console.log(`releasing v${version}`);
+          '
       - run: npm run package --workspace unify-provider
       - uses: actions/upload-artifact@v4
         with:
