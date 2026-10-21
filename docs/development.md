@@ -34,7 +34,7 @@ npm install
 npm run check
 ```
 
-The root `check` script runs workspace typechecking, tests, and builds, skipping scripts absent from a workspace. GitHub Actions (`.github/workflows/ci.yml`) runs the same `npm run check` on Ubuntu and Windows with Node 22 and 24 for every push to `main` and every pull request, then packages the VSIX and uploads it as the `unify-provider-vsix` artifact. It does not run real browser sign-in or VS Code end-to-end verification. Use synthetic credentials in tests and never record real credentials.
+The root `check` script runs workspace typechecking, tests, and builds, skipping scripts absent from a workspace. GitHub Actions (`.github/workflows/ci.yml`) runs the same `npm run check` on Ubuntu and Windows with Node 22 and 24 for every push to `main`, every pull request and every `v*` tag. Only a `v*` tag packages the VSIX: the tag must equal `v` + the version in `packages/extension/package.json`, after which the VSIX is uploaded as the `unify-provider-vsix` artifact and attached to a GitHub Release with generated notes. It does not run real browser sign-in or VS Code end-to-end verification. Use synthetic credentials in tests and never record real credentials.
 
 ## F5 debugging
 
