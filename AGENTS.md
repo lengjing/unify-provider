@@ -16,5 +16,5 @@
 - 生产路径中不得使用伪造的成功认证、虚构模型或占位补全结果。
 - 新增集成时保留用户已有设置，并跟踪自身拥有的配置以便移除。
 - 保持文件与抽象精简。只有在验证接入路径后才添加具体适配器。
-- 唯一的编辑器扩展位于 `packages/extension`（包名 `unify-provider`），同一 VSIX 服务所有支持的编辑器。
+- 唯一的编辑器扩展位于 `packages/extension`（包名 `unify-provider-vscode`，Marketplace ID 不可变故保留后缀），同一 VSIX 服务所有支持的编辑器。
 - 代码变更后运行 npm run check。随着认证状态、协议转换与工具调用正确性等功能落地，补充相应测试。

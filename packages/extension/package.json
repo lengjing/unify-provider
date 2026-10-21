@@ -1,5 +1,5 @@
 {
-  "name": "unify-provider",
+  "name": "unify-provider-vscode",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
   "version": "0.1.1",

@@ -31,7 +31,7 @@ Providers are plugins behind a vendor-neutral interface; nothing in the core or 
 
 ### VS Code
 
-1. Install the extension (`unify-provider-*.vsix` from Releases, or build it yourself — see below).
+1. Install the extension (`unify-provider-vscode-*.vsix` from Releases, or build it yourself — see below).
 2. Run **Unify Provider: Sign in with ChatGPT** from the Command Palette and finish sign-in in your browser.
 3. Open Copilot Chat, open the model picker, and choose a model under **Unify Provider**.
 
@@ -39,7 +39,7 @@ That is all — the model stays selected across restarts and tokens refresh auto
 
 ### Trae
 
-1. Install the same VSIX: `trae-cn --install-extension unify-provider-*.vsix` (or *Extensions → Install from VSIX*), then reload the window.
+1. Install the same VSIX: `trae-cn --install-extension unify-provider-vscode-*.vsix` (or *Extensions → Install from VSIX*), then reload the window.
 2. Click the status bar item → **Continue with ChatGPT** and sign in.
 3. Status bar → **Local endpoint: copy configuration**. Copy the three entries it offers.
 4. In Trae: *Settings → Models → Add custom model → Custom configuration*, API format **OpenAI Chat Completions**, and paste the Base URL (`http://127.0.0.1:46117/v1`), the API key and a model ID. Leave the "full URL" switch off.
@@ -79,7 +79,7 @@ Node.js 22+ and npm.
 ```sh
 npm install
 npm run check                                 # typecheck + tests + build for every package
-npm run package --workspace unify-provider    # build the VSIX into packages/extension/
+npm run package --workspace unify-provider-vscode  # build the VSIX into packages/extension/
 ```
 
 See [docs/development.md](docs/development.md) for debugging, packaging and the manual verification checklist.

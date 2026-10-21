@@ -61,7 +61,7 @@ jobs:
             }
             console.log(`releasing v${version}`);
           '
-      - run: npm run package --workspace unify-provider
+      - run: npm run package --workspace unify-provider-vscode
       - uses: actions/upload-artifact@v4
         with:
           name: unify-provider-vsix

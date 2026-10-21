@@ -14,7 +14,7 @@ packages/
     src/providers/       Subscription providers (Codex via SIWC)
     src/transports/      Transports for later compatibility interfaces
     test/
-  extension/             unify-provider: the single editor extension (VS Code LanguageModelChatProvider + Trae loopback route)
+  extension/             unify-provider-vscode: the single editor extension (VS Code LanguageModelChatProvider + Trae loopback route)
     src/                 Extension, host integration, message/event conversion, local endpoint manager
     test/                Unit tests, without the VS Code runtime
     .vscode/             Extension Development Host launch/build task
@@ -63,21 +63,21 @@ esbuild bundles the extension into CJS. The only external module is `vscode`; th
 At the repository root:
 
 ```sh
-npm run package --workspace unify-provider
+npm run package --workspace unify-provider-vscode
 ```
 
 This invokes `vsce package --no-dependencies`; the `vscode:prepublish` hook first runs the esbuild build. The package script sets GitHub base URLs for README content and images. `.vscodeignore` excludes dependencies, source, tests, debug configuration, build configuration, and existing VSIX files. The VSIX includes the MIT LICENSE and the English user README; the former extension `README.zh-CN.md` has been removed. The root Chinese README is retained.
 
-The extension is published under the Marketplace publisher `gamstek` (`publisher` in `packages/extension/package.json`); the extension ID is therefore `gamstek.unify-provider`. The VSIX must be uploaded from an account that owns that publisher.
+The extension is published under the Marketplace publisher `gamstek` (`publisher` in `packages/extension/package.json`); the extension ID is therefore `gamstek.unify-provider-vscode`. Marketplace IDs are immutable, so the package `name` keeps the historical `-vscode` suffix even though the directory is `packages/extension` and the extension serves other editors too. The VSIX must be uploaded from an account that owns that publisher.
 
 ### Install a local VSIX
 
 For the current version, from the repository root:
 
 ```sh
-code --install-extension packages/extension/unify-provider-0.1.0.vsix
+code --install-extension packages/extension/unify-provider-vscode-0.1.0.vsix
 # Trae CN (Windows)
-& "$env:LOCALAPPDATA\Programs\Trae CN\bin\trae-cn.cmd" --install-extension packages/extension/unify-provider-0.1.0.vsix
+& "$env:LOCALAPPDATA\Programs\Trae CN\bin\trae-cn.cmd" --install-extension packages/extension/unify-provider-vscode-0.1.0.vsix
 ```
 
 Alternatively, use **Extensions: Install from VSIX...** in VS Code. Adjust the filename when the version changes. Verify install, upgrade, and uninstall behavior independently of packaging success.

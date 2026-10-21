@@ -31,7 +31,7 @@ Unify Provider 是一个开源、完全在本机运行的连接器。它用模�
 
 ### VS Code
 
-1. 安装扩展（Releases 里的 `unify-provider-*.vsix`，或按下文自行构建）。
+1. 安装扩展（Releases 里的 `unify-provider-vscode-*.vsix`，或按下文自行构建）。
 2. 命令面板运行 **Unify Provider: 登录 ChatGPT**，在浏览器里完成登录。
 3. 打开 Copilot Chat，在模型选择器里选 **Unify Provider** 下的模型。
 
@@ -39,7 +39,7 @@ Unify Provider 是一个开源、完全在本机运行的连接器。它用模�
 
 ### Trae
 
-1. 安装同一个 VSIX：`trae-cn --install-extension unify-provider-*.vsix`（或 *扩展 → 从 VSIX 安装*），然后重载窗口。
+1. 安装同一个 VSIX：`trae-cn --install-extension unify-provider-vscode-*.vsix`（或 *扩展 → 从 VSIX 安装*），然后重载窗口。
 2. 点右下角状态栏 → **Continue with ChatGPT** 完成登录。
 3. 状态栏 → **本地端点：复制配置**，依次复制三项。
 4. 在 Trae：*设置 → 模型 → 添加自定义模型 → 自定义配置*，API 格式选 **OpenAI Chat Completions**，粘贴 Base URL（`http://127.0.0.1:46117/v1`）、API 密钥和一个模型 ID。"完整 URL"开关保持关闭。
@@ -79,7 +79,7 @@ Unify Provider 是一个开源、完全在本机运行的连接器。它用模�
 ```sh
 npm install
 npm run check                                 # 对每个包执行类型检查 + 测试 + 构建
-npm run package --workspace unify-provider    # 生成 VSIX 到 packages/extension/
+npm run package --workspace unify-provider-vscode  # 生成 VSIX 到 packages/extension/
 ```
 
 调试、打包与人工验证清单见 [docs/development.md](docs/development.md)。
